@@ -33,7 +33,6 @@ on:
 env:
   AWS_REGION: us-east-1
   ECR_REPOSITORY: m5u3c8h9/node
-  IMAGE_TAG: 18.9.0
 
 permissions:
   contents: read
@@ -61,15 +60,22 @@ jobs:
       with:
         registry-type: public
 
-    - name: Build, tag, and push image to Amazon ECR
-      id: build-image
+    - name: Build and deploy nodejs 18.9.0
+      id: build-image-18
       env:
         ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-        IMAGE_TAG: ${{ env.IMAGE_TAG }}
+        IMAGE_TAG: 18.9.0
       run: |
-        # Build a docker container and
-        # push it to ECR so that it can
-        # be deployed to ECS.
-        docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
+        docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG . --build-arg NODE_VERSION=$IMAGE_TAG
         docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
         echo "::set-output name=image::$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
+
+    - name: Build and deploy nodejs 16
+      id: build-image-16
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          IMAGE_TAG: 16
+        run: |
+          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG . --build-arg NODE_VERSION=$IMAGE_TAG
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+          echo "::set-output name=image::$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
